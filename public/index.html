@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Item Manager</title>
+  <style>
+    body{font-family:system-ui;margin:2rem}
+    table{border-collapse:collapse;width:100%}
+    td,th{border:5px solid #7ac761;padding:.5rem}
+    form{margin-bottom:1rem}
+  </style>
+</head>
+<body>
+<h1>Items</h1>
+<form id="addForm">
+  <input required name="name" placeholder="Name">
+  <input name="description" placeholder="Description">
+  <button>Add</button>
+</form>
+<table id="tbl"><thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Delete</th></tr></thead><tbody></tbody></table>
+
+<script>
+const API = '/api/items';
+
+async function load() {
+  const rows = await fetch(API).then(r=>r.json());
+  const tbody = document.querySelector('#tbl tbody');
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.id}</td><td>${r.name}</td><td>${r.description||''}</td>
+      <td><button onclick="del(${r.id})">✖</button></td>
+    </tr>`).join('');
+}
+
+async function del(id){
+  await fetch(API+'/'+id,{method:'DELETE'});
+  load();
+}
+
+document.getElementById('addForm').onsubmit = async e => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  await fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(Object.fromEntries(fd))
+  });
+  e.target.reset();
+  load();
+};
+
+load();
+</script>
+</body>
+</html>
